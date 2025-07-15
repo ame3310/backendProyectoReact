@@ -20,6 +20,10 @@ const getProfile = async (req, res, next) => {
             },
           ],
         },
+        {
+          model: Review,
+          as: "reviews",
+        },
       ],
     });
 
