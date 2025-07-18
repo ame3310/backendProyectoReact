@@ -1,0 +1,44 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# dotenv environment files
+.env
+
+
+# Database
+database.sqlite
+*.sqlite
+*.sqlite3
+
+# Sequelize specific
+src/config/config.json
+
+# Coverage
+coverage/
+
+# Build folders (si usas TypeScript o alguna herramienta de build)
+dist/
+build/
+
+# VSCode settings (opcional)
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+temp/
+
+# IDEs
+.idea/
