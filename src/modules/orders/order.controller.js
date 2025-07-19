@@ -1,7 +1,5 @@
-const { Order } = require("../../config/db.config").models;
-const { OrderProduct } = require("../../config/db.config").models;
-const { Product } = require("../../config/db.config").models;
-const { User } = require("../../config/db.config").models;
+const { models } = require("../../config/db.config").models;
+const { Order, OrderProduct, Product, User } = models;
 const { AppError } = require("../../middlewares/error-handler");
 
 const createOrder = async (req, res, next) => {
@@ -32,7 +30,21 @@ const createOrder = async (req, res, next) => {
     }
 
     const fullOrder = await Order.findByPk(order.id, {
-      include: [{ model: Product, as: "products" }],
+      include: [
+        {
+          model: Product,
+          as: "products",
+          through: { attributes: ["quantity", "price"] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
+        },
+      ],
     });
 
     res.status(201).json(fullOrder);
@@ -49,6 +61,14 @@ const getAllOrders = async (req, res, next) => {
           model: Product,
           as: "products",
           through: { attributes: ["quantity", "price"] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
         },
         {
           model: User,
@@ -72,6 +92,14 @@ const getUserAllOrders = async (req, res, next) => {
           model: Product,
           as: "products",
           through: { attributes: ["quantity", "price"] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
     });
@@ -89,6 +117,14 @@ const getOrderById = async (req, res, next) => {
           model: Product,
           as: "products",
           through: { attributes: ["quantity", "price"] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
         },
         {
           model: User,
@@ -121,6 +157,14 @@ const getUserOrderById = async (req, res, next) => {
           model: Product,
           as: "products",
           through: { attributes: ["quantity", "price"] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
     });

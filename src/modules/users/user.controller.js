@@ -1,5 +1,5 @@
 const { models } = require("../../config/db.config");
-const { User, Order, Product, Review, UserFavorite } = models;
+const { User, Order, Product, Category, Review, UserFavorite } = models;
 const bcrypt = require("bcrypt");
 const { AppError } = require("../../middlewares/error-handler");
 
@@ -17,6 +17,14 @@ const getProfile = async (req, res, next) => {
               as: "products",
               attributes: ["id", "name", "description", "price", "images"],
               through: { attributes: ["quantity"] },
+              include: [
+                {
+                  model: Category,
+                  as: "categories",
+                  attributes: ["id", "name"],
+                  through: { attributes: [] },
+                },
+              ],
             },
           ],
         },
@@ -29,6 +37,14 @@ const getProfile = async (req, res, next) => {
           as: "favorites",
           attributes: ["id", "name", "price", "images"],
           through: { attributes: [] },
+          include: [
+            {
+              model: Category,
+              as: "categories",
+              attributes: ["id", "name"],
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
     });
