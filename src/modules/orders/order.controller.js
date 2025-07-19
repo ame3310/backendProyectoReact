@@ -1,5 +1,6 @@
-const { models } = require("../../config/db.config").models;
+const { models } = require("../../config/db.config")
 const { Order, OrderProduct, Product, User } = models;
+
 const { AppError } = require("../../middlewares/error-handler");
 
 const createOrder = async (req, res, next) => {
