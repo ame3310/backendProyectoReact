@@ -1,23 +1,24 @@
 const { AppError } = require("../../middlewares/error-handler");
 const { models } = require("../../config/db.config");
 const { User, Product, Review, ReviewLike } = models;
+const enrichReviews = require("../../utils/enrichReviews");
 
 const getAllReviews = async (req, res, next) => {
   try {
     const reviews = await Review.findAll({
       include: [
-        { model: User, as: "user", attributes: ["id", "email"] },
-        { model: Product, as: "product", attributes: ["id", "name"] },
-        { model: User, as: "likedBy", attributes: ["id"] },
+        { model: User, as: "User", attributes: ["id", "email"] },
+        { model: Product, as: "Product", attributes: ["id", "name"] },
+        {
+          model: User,
+          as: "likedBy",
+          attributes: ["id"],
+          through: { attributes: [] },
+        },
       ],
     });
 
-    const reviewsWithLikes = reviews.map((review) => ({
-      ...review.toJSON(),
-      likeCount: review.likedBy?.length || 0,
-    }));
-
-    res.json(reviewsWithLikes);
+    res.json(enrichReviews(reviews, req.user?.id));
   } catch (err) {
     next(err);
   }
@@ -27,18 +28,20 @@ const getReviewById = async (req, res, next) => {
   try {
     const review = await Review.findByPk(req.params.id, {
       include: [
-        { model: User, as: "user", attributes: ["id", "email"] },
-        { model: Product, as: "product", attributes: ["id", "name"] },
-        { model: User, as: "likedBy", attributes: ["id"] },
+        { model: User, as: "User", attributes: ["id", "email"] },
+        { model: Product, as: "Product", attributes: ["id", "name"] },
+        {
+          model: User,
+          as: "likedBy",
+          attributes: ["id"],
+          through: { attributes: [] },
+        },
       ],
     });
 
     if (!review) return next(new AppError("Reseña no encontrada", 404));
 
-    res.json({
-      ...review.toJSON(),
-      likeCount: review.likedBy?.length || 0,
-    });
+    res.json(enrichReviews([review], req.user?.id)[0]);
   } catch (err) {
     next(err);
   }
@@ -49,17 +52,17 @@ const getReviewsByProductId = async (req, res, next) => {
     const reviews = await Review.findAll({
       where: { productId: req.params.productId },
       include: [
-        { model: User, as: "user", attributes: ["id", "email"] },
-        { model: User, as: "likedBy", attributes: ["id"] },
+        { model: User, as: "User", attributes: ["id", "email", "userName"] },
+        {
+          model: User,
+          as: "likedBy",
+          attributes: ["id"],
+          through: { attributes: [] },
+        },
       ],
     });
 
-    const reviewsWithLikes = reviews.map((review) => ({
-      ...review.toJSON(),
-      likeCount: review.likedBy?.length || 0,
-    }));
-
-    res.json(reviewsWithLikes);
+    res.json(enrichReviews(reviews, req.user?.id));
   } catch (err) {
     next(err);
   }
@@ -67,20 +70,21 @@ const getReviewsByProductId = async (req, res, next) => {
 
 const getAllReviewsByUser = async (req, res, next) => {
   try {
+    const userId = req.user.id;
     const reviews = await Review.findAll({
-      where: { userId: req.params.userId },
+      where: { userId },
       include: [
-        { model: Product, as: "product", attributes: ["id", "name"] },
-        { model: User, as: "likedBy", attributes: ["id"] },
+        { model: Product, as: "Product", attributes: ["id", "name"] },
+        { model: User, as: "User", attributes: ["id", "email", "userName"] },
+        {
+          model: User,
+          as: "likedBy",
+          attributes: ["id"],
+          through: { attributes: [] },
+        },
       ],
     });
-
-    const reviewsWithLikes = reviews.map((review) => ({
-      ...review.toJSON(),
-      likeCount: review.likedBy?.length || 0,
-    }));
-
-    res.json(reviewsWithLikes);
+    res.json(enrichReviews(reviews, userId));
   } catch (err) {
     next(err);
   }
@@ -108,7 +112,15 @@ const createReview = async (req, res, next) => {
 
 const updateReview = async (req, res, next) => {
   try {
-    const { rating, comment } = req.body;
+    if (req.body.rating !== undefined) {
+      req.body.rating = parseInt(req.body.rating, 10);
+    }
+
+    if (req.body.removeImage !== undefined) {
+      req.body.removeImage = req.body.removeImage === "true";
+    }
+
+    const { rating, comment, removeImage } = req.body;
     const userId = req.user.id;
     const image = req.file ? req.file.filename : undefined;
 
@@ -118,14 +130,17 @@ const updateReview = async (req, res, next) => {
     if (review.userId !== userId)
       return next(new AppError("No autorizado para editar esta reseña", 403));
 
-    const updateData = { rating, comment };
+    const updateData = {};
+    if (rating !== undefined) updateData.rating = rating;
+    if (comment !== undefined) updateData.comment = comment;
 
-    if (image !== undefined) {
+    if (removeImage) {
+      updateData.image = null;
+    } else if (image !== undefined) {
       updateData.image = image;
     }
 
     await review.update(updateData);
-
     res.json(review);
   } catch (err) {
     next(err);

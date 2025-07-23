@@ -15,23 +15,37 @@ const {
 } = require("./review.controller");
 
 const requireAuth = require("../../middlewares/requireAuth.middleware");
+const optionalAuthWithRefresh = require("../../middlewares/optionalAuthWithRefresh.middleware");
 const validate = require("../../middlewares/validate.middleware");
 const autoRefresh = require("../../middlewares/autoRefresh.middleware");
-const { reviewSchema } = require("./review.validation");
+
+const {
+  createReviewSchema,
+  updateReviewSchema,
+} = require("./review.validation");
 
 router.get("/", getAllReviews);
-router.get("/product/:productId", getReviewsByProductId);
-router.get("/user/:userId", getAllReviewsByUser);
+router.get(
+  "/product/:productId",
+  optionalAuthWithRefresh,
+  getReviewsByProductId
+);
+router.get("/user", autoRefresh, requireAuth, getAllReviewsByUser);
 router.get("/:id", getReviewById);
 
 router.use(autoRefresh);
 router.use(requireAuth);
+router.post(
+  "/",
+  upload.single("image"),
+  validate(createReviewSchema),
+  createReview
+);
 
-router.post("/", upload.single("image"), validate(reviewSchema), createReview);
 router.put(
   "/:id",
   upload.single("image"),
-  validate(reviewSchema),
+  validate(updateReviewSchema),
   updateReview
 );
 router.delete("/:id", deleteReview);

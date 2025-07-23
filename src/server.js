@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 3000;
     await sequelize.authenticate();
     console.log("🔗 Conexión a la base de datos exitosa");
 
-    /*await sequelize.sync();*/
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });

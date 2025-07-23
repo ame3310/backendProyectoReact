@@ -1,5 +1,5 @@
-const { models } = require("../../config/db.config")
-const { Order, OrderProduct, Product, User } = models;
+const { models } = require("../../config/db.config");
+const { Order, OrderProduct, Product, User, Category } = models;
 
 const { AppError } = require("../../middlewares/error-handler");
 
@@ -26,7 +26,6 @@ const createOrder = async (req, res, next) => {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity || 1,
-        price: product.price,
       });
     }
 
@@ -35,7 +34,7 @@ const createOrder = async (req, res, next) => {
         {
           model: Product,
           as: "products",
-          through: { attributes: ["quantity", "price"] },
+          through: { attributes: ["quantity"] },
           include: [
             {
               model: Category,
@@ -61,7 +60,7 @@ const getAllOrders = async (req, res, next) => {
         {
           model: Product,
           as: "products",
-          through: { attributes: ["quantity", "price"] },
+          through: { attributes: ["quantity"] },
           include: [
             {
               model: Category,
@@ -73,7 +72,7 @@ const getAllOrders = async (req, res, next) => {
         },
         {
           model: User,
-          as: "user",
+          as: "User",
           attributes: ["id", "userName"],
         },
       ],
@@ -92,7 +91,7 @@ const getUserAllOrders = async (req, res, next) => {
         {
           model: Product,
           as: "products",
-          through: { attributes: ["quantity", "price"] },
+          through: { attributes: ["quantity"] },
           include: [
             {
               model: Category,
@@ -117,7 +116,7 @@ const getOrderById = async (req, res, next) => {
         {
           model: Product,
           as: "products",
-          through: { attributes: ["quantity", "price"] },
+          through: { attributes: ["quantity"] },
           include: [
             {
               model: Category,
@@ -129,7 +128,7 @@ const getOrderById = async (req, res, next) => {
         },
         {
           model: User,
-          as: "user",
+          as: "User",
           attributes: ["id", "userName"],
         },
       ],
